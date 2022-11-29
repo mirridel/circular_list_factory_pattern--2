@@ -12,18 +12,9 @@ object Test {
     val p = UserFactory.getBuilderByName("Integer")
 
     for (i <- 20 until 0 by -1) {
-      cl.add(p.create().asInstanceOf[Int])
+      cl.add(i)
     }
 
-    //System.out.println(cl.size)
-    //System.out.println(cl.toString)
-
-    val cl2 = cl.mergeSort(p.getTypeComparator.asInstanceOf[Comparator[Int]])
-
-    System.out.println(cl.toString)
-    System.out.println(cl2.toString)
-
-    /*
     //prints the original list
     System.out.println("\nOriginal list: ")
     System.out.println(cl.toString)
@@ -79,15 +70,16 @@ object Test {
 
    System.out.println("\nsortList(comparator)")
    //sort list
-   try cl.sort(p.getTypeComparator.asInstanceOf[Comparator[Int]])
+   try {
+     var clSorted = cl.mergeSort(p.getTypeComparator.asInstanceOf[Comparator[Int]])
+     System.out.println(clSorted.toString)
+   }
    catch {
      case ignored: StackOverflowError =>
        System.err.println("Stack error")
-       return
    }
-    System.out.println(cl.toString)
-  */
-    test(p)
+
+    //test(p)
   }
 
   private def test(builder: UserType): Unit = {
@@ -101,8 +93,7 @@ object Test {
       }
       val start = System.nanoTime
       try {
-        val lst = list.mergeSort(builder.getTypeComparator, 0)
-        System.out.println("Count = " + lst._2)
+        val lst = list.mergeSort(builder.getTypeComparator)
       }
       catch {
         case ignored: StackOverflowError =>
