@@ -5,7 +5,6 @@ import javapart.gui.AbstractListActionListener
 
 import java.io._
 
-
 class ListActionListenerImpl extends AbstractListActionListener {
   protected var items: CircularListScala[AnyRef] = new CircularListScala[AnyRef]
 
@@ -39,7 +38,9 @@ class ListActionListenerImpl extends AbstractListActionListener {
   }
 
   override def onSort(): Unit = {
-    items.sort(builder.getTypeComparator)
+    System.out.println("До: " + items.toString)
+    items = items.mergeSort(builder.getTypeComparator)
+    System.out.println("После: " + items.toString)
     listModel.clear()
     items.forEach(el => listModel.addElement(el))
   }

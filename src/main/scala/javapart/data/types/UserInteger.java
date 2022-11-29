@@ -33,6 +33,7 @@ public class UserInteger implements UserType, Cloneable, Comparable<UserInteger>
 
     @Override
     public Comparator<Object> getTypeComparator() {
+
         return (o1, o2) -> (Integer) o1 - (Integer) o2;
     }
 

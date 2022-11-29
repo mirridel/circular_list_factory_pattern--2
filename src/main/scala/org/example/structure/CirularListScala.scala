@@ -259,87 +259,46 @@ class CircularListScala[T] extends Serializable{
     }
   }
 
-  def sort(comparator: Comparator[T]): Unit = { //split the list
-    tail.setNext(null)
-    head = mergeSort(head, comparator)
-    //close the list
-    tail = head
-    while ( {
-      tail.getNext != null
-    }) {
-      tail = tail.getNext
+  def subList(min: Integer, max: Integer): CircularListScala[T] ={
+    var lst = new CircularListScala[T];
+    var n = max - min
+    for (w <- 0 until n) {
+      lst.addBack(this.getDataAtPosition(min+w))
     }
-    tail.setNext(head)
-    head.setPrevious(tail)
+    return lst
   }
 
-  def mergeSort(h: NodeScala[T], comparator: Comparator[T]): NodeScala[T] = {
-    if (h == null || h.getNext == null) {
-      return h
-    }
-    val middle: NodeScala[T] = getMiddle(h)
-    val middleNext: NodeScala[T] = middle.getNext
-    middle.setNext(null)
-    val left: NodeScala[T] = mergeSort(h, comparator)
-    val right: NodeScala[T] = mergeSort(middleNext, comparator)
-    return merge(left, right, comparator)
+  def mergeSort(comparator: Comparator[T]): CircularListScala[T] = {
+
+    var mid = size / 2
+    if (mid == 0)
+      return this
+    merge(subList(0, mid).mergeSort(comparator), subList(mid, size).mergeSort(comparator), new CircularListScala[T], comparator)
   }
 
-  def merge(head11: NodeScala[T], head22: NodeScala[T], comparator: Comparator[T]): NodeScala[T] = {
-    var left: NodeScala[T] = head11
-    var right: NodeScala[T] = head22
-    val merged: NodeScala[T] = new NodeScala[T](null.asInstanceOf[T])
-    var temp: NodeScala[T] = merged
-    while ( {
-      left != null && right != null
-    }) {
-      if (comparator.compare(left.getData, right.getData) < 0) {
-        temp.setNext(left)
-        left.setPrevious(temp)
-        left = left.getNext
+  def addAll(input: CircularListScala[T]): Unit = {
+    for (w <- 0 until input.size) {
+      this.addBack(input.getDataAtPosition(w))
+    }
+  }
+
+  private def merge(first: CircularListScala[T], second: CircularListScala[T], accumulator: CircularListScala[T], comparator: Comparator[T]): CircularListScala[T] = {
+    if (first.isEmpty) {
+      accumulator.addAll(second)
+    }
+    else if (second.isEmpty) {
+      accumulator.addAll(first)
+    }
+    else {
+      if (comparator.compare(first.getDataAtPosition(0), second.getDataAtPosition(0)) < 0) {
+        accumulator.addBack(first.getDataAtPosition(0))
+        return merge(first.subList(1, first.size), second, accumulator, comparator)
       }
       else {
-        temp.setNext(right)
-        right.setPrevious(temp)
-        right = right.getNext
-      }
-      temp = temp.getNext
-    }
-    while ( {
-      left != null
-    }) {
-      temp.setNext(left)
-      left.setPrevious(temp)
-      left = left.getNext
-      temp = temp.getNext
-    }
-    while ( {
-      right != null
-    }) {
-      temp.setNext(right)
-      right.setPrevious(temp)
-      right = right.getNext
-      temp = temp.getNext
-      this.tail = temp
-    }
-    return merged.getNext
-  }
-
-  def getMiddle(h: NodeScala[T]): NodeScala[T] = {
-    if (h == null) {
-      return null
-    }
-    var fast: NodeScala[T] = h.getNext
-    var slow: NodeScala[T] = h
-    while ( {
-      fast != null
-    }) {
-      fast = fast.getNext
-      if (fast != null) {
-        slow = slow.getNext
-        fast = fast.getNext
+        accumulator.addBack(second.getDataAtPosition(0));
+        return merge(first, second.subList(1, second.size), accumulator, comparator)
       }
     }
-    return slow
+    return accumulator
   }
 }

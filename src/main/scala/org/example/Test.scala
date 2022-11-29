@@ -12,9 +12,18 @@ object Test {
     val p = UserFactory.getBuilderByName("Integer")
 
     for (i <- 20 until 0 by -1) {
-      cl.add(i)
+      cl.add(p.create().asInstanceOf[Int])
     }
 
+    //System.out.println(cl.size)
+    //System.out.println(cl.toString)
+
+    val cl2 = cl.mergeSort(p.getTypeComparator.asInstanceOf[Comparator[Int]])
+
+    System.out.println(cl.toString)
+    System.out.println(cl2.toString)
+
+    /*
     //prints the original list
     System.out.println("\nOriginal list: ")
     System.out.println(cl.toString)
@@ -77,21 +86,24 @@ object Test {
        return
    }
     System.out.println(cl.toString)
-
+  */
     test(p)
   }
 
   private def test(builder: UserType): Unit = {
-    for(i <-  1 to 11) {
+    for(i <-  1 until 10) {
       System.out.println("i * i = " + (i*i))
-      val n = (i*i) * 10000
+      val n = (i*i) * 100
       System.out.println("N = " + n)
       val list = new CircularListScala[AnyRef]
       for (j <- 0 until n) {
         list.add(builder.create)
       }
       val start = System.nanoTime
-      try list.sort(builder.getTypeComparator)
+      try {
+        val lst = list.mergeSort(builder.getTypeComparator, 0)
+        System.out.println("Count = " + lst._2)
+      }
       catch {
         case ignored: StackOverflowError =>
           System.err.println("Stack error")
