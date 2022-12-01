@@ -1,9 +1,10 @@
 package org.example
 
-import javapart.data.types.{Comparator, UserFactory, UserInteger, UserType}
-import javapart.gui.UI
-import org.example.gui.ListActionListenerImpl
+import javapart.data.types.{Comparator, UserFactory, UserType}
 import org.example.structure.CircularListScala
+import org.example.structure.MyCounter
+
+import scala.math.pow
 
 object Test {
   def main(args: Array[String]) {
@@ -14,6 +15,8 @@ object Test {
     for (i <- 20 until 0 by -1) {
       cl.add(i)
     }
+
+    val myCounter = new MyCounter()
 
     //prints the original list
     System.out.println("\nOriginal list: ")
@@ -69,9 +72,11 @@ object Test {
 
 
    System.out.println("\nsortList(comparator)")
+
    //sort list
    try {
-     var clSorted = cl.mergeSort(p.getTypeComparator.asInstanceOf[Comparator[Int]])
+
+     var clSorted = cl.mergeSort(p.getTypeComparator.asInstanceOf[Comparator[Int]], myCounter)
      System.out.println(clSorted.toString)
    }
    catch {
@@ -79,21 +84,24 @@ object Test {
        System.err.println("Stack error")
    }
 
-    //test(p)
+    test(p)
   }
 
   private def test(builder: UserType): Unit = {
-    for(i <-  1 until 10) {
-      System.out.println("i * i = " + (i*i))
-      val n = (i*i) * 100
+    var i = 1
+    while(i <= 512) {
+      // System.out.println("i * i = " + (i*i))
+      val n = i * 10000
       System.out.println("N = " + n)
       val list = new CircularListScala[AnyRef]
-      for (j <- 0 until n) {
+      for (j <- 0 until n.asInstanceOf[Int]) {
         list.add(builder.create)
       }
-      val start = System.nanoTime
+      val start = System.nanoTime()
+      var myCounter = new MyCounter()
       try {
-        val lst = list.mergeSort(builder.getTypeComparator)
+        var lst = list.mergeSort(builder.getTypeComparator, myCounter)
+        System.out.println("Count: " + myCounter.get())
       }
       catch {
         case ignored: StackOverflowError =>
@@ -101,8 +109,8 @@ object Test {
           return
       }
       val end = System.nanoTime
-      System.out.println("Millis elapsed " + (end - start) * 1.0)
+      System.out.println("Seconds elapsed " + (end - start) * 0.000000001)
+      i *= 2
     }
   }
-
 }

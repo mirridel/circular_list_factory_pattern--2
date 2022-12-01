@@ -103,6 +103,33 @@ class CircularListScala[T] extends Serializable{
     numElements += 1
   }
 
+  def addBack(data: T, count: MyCounter): Unit = { //adds new element to the back of the list
+    val newNode = new NodeScala[T](data)
+    count.inc()
+    if (isEmpty) {
+      head = newNode
+      count.inc()
+      tail = newNode
+      count.inc()
+      head.setPrevious(tail)
+      count.inc()
+      tail.setNext(head)
+      count.inc()
+    }
+    else {
+      tail.setNext(newNode)
+      count.inc()
+      newNode.setPrevious(tail)
+      count.inc()
+      tail = newNode
+      count.inc()
+      tail.setNext(head)
+      count.inc()
+    }
+    numElements += 1
+    count.inc()
+  }
+
   def addAtPosition(data: T, position: Int): Unit = { //adds new element to the specified position
     val newNode = new NodeScala[T](data)
     if (isEmpty) { // add element to an empty list
@@ -166,7 +193,6 @@ class CircularListScala[T] extends Serializable{
     }
     found
   }
-
   def removeFront(): Unit = {
     if (!isEmpty) if (head.getNext eq head) {
       head = null
@@ -178,6 +204,25 @@ class CircularListScala[T] extends Serializable{
       tail.setNext(head)
     }
     numElements -= 1
+  }
+  // Function with counter
+  def removeFront(count: MyCounter): Unit = {
+    if (!isEmpty) if (head.getNext eq head) {
+      head = null
+      count.inc()
+      tail = null
+      count.inc()
+    }
+    else {
+      head = head.getNext
+      count.inc()
+      head.setPrevious(tail)
+      count.inc()
+      tail.setNext(head)
+      count.inc()
+    }
+    numElements -= 1
+    count.inc()
   }
 
   def removeBack(): Unit = {
@@ -259,46 +304,113 @@ class CircularListScala[T] extends Serializable{
     }
   }
 
-  def subList(min: Integer, max: Integer): CircularListScala[T] ={
+  def subList(min: Integer, max: Integer, count: MyCounter): CircularListScala[T] ={
     var lst = new CircularListScala[T];
-    var n = max - min
-    for (w <- 0 until n) {
-      lst.addBack(this.getDataAtPosition(min+w))
-    }
+    var n = 0
+    this.forEach(el =>{
+      if(min <= n && n < max){
+        lst.addBack(el)
+        count.inc()
+      }
+      n+=1
+      count.inc()
+    })
+    lst
+  }
+
+  def subList(min: Integer, max: Integer): CircularListScala[T] = {
+    var lst = new CircularListScala[T];
+    var n = 0
+    this.forEach(el => {
+      if (min <= n && n < max) {
+        lst.addBack(el)
+      }
+      n+=1
+    })
     return lst
   }
 
-  def mergeSort(comparator: Comparator[T]): CircularListScala[T] = {
+  def addAll(input: CircularListScala[T], count: MyCounter): Unit = {
+    input.forEach(el => {
+      this.addBack(el)
+      count.inc()
+    })
+  }
 
+  // Sort function WITH counter. Type is merge sort.
+  def mergeSort(comparator: Comparator[T], count: MyCounter): CircularListScala[T] = {
     var mid = size / 2
     if (mid == 0)
       return this
-    merge(subList(0, mid).mergeSort(comparator), subList(mid, size).mergeSort(comparator), new CircularListScala[T], comparator)
+
+    var L = subList(0, mid, count)
+    var R = subList(mid, size, count)
+
+    L = L.mergeSort(comparator, count)
+    R = R.mergeSort(comparator, count)
+
+    merge(L, R, comparator, count)
   }
 
-  def addAll(input: CircularListScala[T]): Unit = {
-    for (w <- 0 until input.size) {
-      this.addBack(input.getDataAtPosition(w))
-    }
-  }
+  private def merge(first: CircularListScala[T], second: CircularListScala[T], comparator: Comparator[T], count: MyCounter): CircularListScala[T] = {
+    var accumulator = new CircularListScala[T]
 
-  private def merge(first: CircularListScala[T], second: CircularListScala[T], accumulator: CircularListScala[T], comparator: Comparator[T]): CircularListScala[T] = {
-    if (first.isEmpty) {
-      accumulator.addAll(second)
-    }
-    else if (second.isEmpty) {
-      accumulator.addAll(first)
-    }
-    else {
-      if (comparator.compare(first.getDataAtPosition(0), second.getDataAtPosition(0)) < 0) {
-        accumulator.addBack(first.getDataAtPosition(0))
-        return merge(first.subList(1, first.size), second, accumulator, comparator)
+    while (first.size > 0 && second.size > 0){
+      if (comparator.compare(first.getHeadData, second.getHeadData) <= 0){
+        accumulator.addBack(first.getHeadData, count)
+        first.removeFront(count)
       }
       else {
-        accumulator.addBack(second.getDataAtPosition(0));
-        return merge(first, second.subList(1, second.size), accumulator, comparator)
+        accumulator.addBack(second.getHeadData, count)
+        second.removeFront(count)
       }
     }
-    return accumulator
+    while (first.size > 0){
+      accumulator.addBack(first.getHeadData, count)
+      first.removeFront(count)
+    }
+    while (second.size > 0) {
+      accumulator.addBack(second.getHeadData, count)
+      second.removeFront(count)
+    }
+    accumulator
+  }
+  // Sort function WITHOUT counter. Type is merge sort.
+  def mergeSort(comparator: Comparator[T]): CircularListScala[T] = {
+    var mid = size / 2
+    if (mid == 0)
+      return this
+
+    val L = subList(0, mid)
+    val R = subList(mid, size)
+
+    var first = L.mergeSort(comparator)
+    var second = R.mergeSort(comparator)
+
+    merge(first, second, comparator)
+  }
+
+  private def merge(first: CircularListScala[T], second: CircularListScala[T], comparator: Comparator[T]): CircularListScala[T] = {
+    var accumulator = new CircularListScala[T]
+
+    while (first.size > 0 && second.size > 0) {
+      if (comparator.compare(first.getHeadData, second.getHeadData) <= 0) {
+        accumulator.addBack(first.getHeadData)
+        first.removeFront()
+      }
+      else {
+        accumulator.addBack(second.getHeadData)
+        second.removeFront()
+      }
+    }
+    while (first.size > 0) {
+      accumulator.addBack(first.getHeadData)
+      first.removeFront()
+    }
+    while (second.size > 0) {
+      accumulator.addBack(second.getHeadData)
+      second.removeFront()
+    }
+    accumulator
   }
 }
